@@ -25,13 +25,30 @@ const Tour = require('./../models/tourModel');
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    //BUILD QUERY
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    //ADVANCE FILTERING
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    let query = Tour.find(JSON.parse(queryStr));
+
+    //SORTING
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('createdAt');
+    }
+    const tours = await query;
     res.status(200).json({
       staus: 'success',
       data: { tours },
     });
   } catch (err) {
-    res.status(404).body.json({
+    res.status(404).json({
       status: 'fail',
       message: err,
     });
@@ -46,7 +63,7 @@ exports.getTour = async (req, res) => {
       data: { tour: tour },
     });
   } catch (err) {
-    res.status(404).body.json({
+    res.status(404).json({
       status: 'fail',
       message: err,
     });
@@ -61,7 +78,7 @@ exports.createTour = async (req, res) => {
       data: { tour: newTour },
     });
   } catch (err) {
-    res.status(400).body.json({
+    res.status(400).json({
       status: 'fail',
       message: err,
     });
