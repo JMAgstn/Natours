@@ -11,7 +11,7 @@ exports.aliasTopTours = (req, res, next) => {
 
 exports.getTourStats = async (req, res) => {
   try {
-    const stats = Tour.aggregate([
+    const stats = await Tour.aggregate([
       //PIPELINE, order is important
       {
         $match: { ratingsAverage: { $gte: 4.5 } },
@@ -213,7 +213,7 @@ exports.getMonthlyPlan = async (req, res) => {
         },
       },
       {
-        $sort: { numTourStarts: -1 },
+        $sort: { month: -1 },
       },
       {
         $limit: 12,
